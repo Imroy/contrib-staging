@@ -76,7 +76,16 @@ then
 	then
 		TARGT="$1"
 	else
-		TARGT="none pentium pentiummmx pentium2 pentium3 pentium4 k6 k62 k63 athlon x86_64"
+		case `uname -m` in
+			x86*) TARGT="none pentium pentiummmx pentium2 pentium3 pentium4 k6 k62 k63 athlon x86_64"
+			;;
+
+			arm*) TARGT="none arm"
+			;;
+
+			*) echo Unknown machine architecture \"`uname -m`\"
+			exit 1
+		esac
 	fi
 
 	for CPU in $TARGT
