@@ -52,6 +52,10 @@ if [ ! -d gmp-${GMP_VERSION} ]
 then
 	echo "Extracting sources for GNU MP library version ${GMP_VERSION}..."
 	tar -xzf gmp-${GMP_VERSION}.tar.gz
+
+	# Modify the GMP build scripts so they recognise up to ARMv7
+	echo "Patching sources for GNU MP library version ${GMP_VERSION}..."
+	( cd gmp-${GMP_VERSION}; sed -e 's|armv\[\([0-9][0-9]*5\)\]|armv[\167]|g' -i configfsf.sub )
 fi
 
 # (Re)create directories for jbigi build output
