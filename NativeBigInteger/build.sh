@@ -34,12 +34,12 @@ Darwin*)
 	;;
 esac
 
-# We need -fPIC on x86_64
-if [ `uname -m` = "x86_64" -o `uname -m` = "mips" ]
-then
-	export CFLAGS="-fPIC"
-fi
-
+# We need -fPIC on several platforms
+case `uname -m` in
+	x86_64|mips|arm*)
+		export CFLAGS="-fPIC"
+		;;
+esac
 
 # Don't download gmp if it's already been done
 if [ ! -f gmp-${GMP_VERSION}.tar.gz ]
