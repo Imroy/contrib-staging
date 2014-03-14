@@ -63,72 +63,70 @@ mkdir -pv lib/net/i2p/util
 # Break out build into Darwin and everything else.
 if test ! `uname` = "Darwin"
 then
+	# Build a library version for each of the enumerated (x86) CPU types
+	#
+	# "none" = a generic build with no specific CPU type indicated to the
+	# compiler
 
-# Build a library version for each of the enumerated (x86) CPU types
-#
-# "none" = a generic build with no specific CPU type indicated to the 
-# compiler
+	if [ -n "$1" ]
+	then
+		TARGT="$1"
+	else
+		TARGT="none pentium pentiummmx pentium2 pentium3 pentium4 k6 k62 k63 athlon x86_64"
+	fi
 
-if [ -n "$1" ]
-then
-	TARGT="$1"
+	for CPU in $TARGT
+	do
+		mkdir -p bin/${CPU}
+		cd bin/${CPU}
+
+		# Build a CPU-specific version of gmp first
+
+		echo "Building GNU MP library for ${CPU}..."
+
+		../../gmp-${GMP_VERSION}/configure --build=${CPU} --host=${CPU}
+		$MAKE
+
+		# Now build a CPU-specific jbigi library
+		# linked with the CPU-specific gmp we just built
+
+		echo "Building statically linked jbigi library for ${CPU}..."
+
+		sh ../../build_jbigi.sh static
+
+		# Copy library to its final location with CPU-specific name
+		case ${OS} in
+		MINGW*)
+			cp jbigi.dll ../../lib/net/i2p/util/jbigi-windows-${CPU}.dll
+			;;
+		Linux*)
+			cp libjbigi.so ../../lib/net/i2p/util/libjbigi-linux-${CPU}.so
+			;;
+		FreeBSD*)
+			cp libjbigi.so ../../lib/net/i2p/util/libjbigi-freebsd-${CPU}.so
+			;;
+		esac
+
+		echo "Done!"
+
+		# return to original directory for next build
+		# (or return user to original directory upon exit)
+		cd ../..
+	done
+
+
+	# Otherwise we are building for Darwin
 else
-	TARGT="none pentium pentiummmx pentium2 pentium3 pentium4 k6 k62 k63 athlon x86_64"
-fi
-
-for CPU in $TARGT
-do
-	mkdir -p bin/${CPU}
-	cd bin/${CPU}
-
-	# Build a CPU-specific version of gmp first
-
-	echo "Building GNU MP library for ${CPU}..."
-
-	../../gmp-${GMP_VERSION}/configure --build=${CPU} --host=${CPU}
+	# Darwin build script
+	# --with-pic is required for static linking
+	# Only build static library since it would be rare for OSX user to have gmp installed.
+	mkdir -p bin/none
+	cd bin/none
+	../../gmp-${GMP_VERSION}/configure --with-pic
 	$MAKE
-
-	# Now build a CPU-specific jbigi library
-	# linked with the CPU-specific gmp we just built
-
-	echo "Building statically linked jbigi library for ${CPU}..."
-
 	sh ../../build_jbigi.sh static
-
-	# Copy library to its final location with CPU-specific name
-	
-	case ${OS} in
-	MINGW*)
-		cp jbigi.dll ../../lib/net/i2p/util/jbigi-windows-${CPU}.dll
-		;;
-	Linux*)
-		cp libjbigi.so ../../lib/net/i2p/util/libjbigi-linux-${CPU}.so
-		;;
-	FreeBSD*)
-		cp libjbigi.so ../../lib/net/i2p/util/libjbigi-freebsd-${CPU}.so
-		;;
-	esac
-
-	echo "Done!"
-	
-	# return to original directory for next build
-	# (or return user to original directory upon exit)
+	cp libjbigi.jnilib ../../lib/net/i2p/util/libjbigi-osx-$(uname -m).jnilib
 	cd ../..
-done
-
-
-# Otherwise we are building for Darwin
-else
-# Darwin build script
-# --with-pic is required for static linking
-# Only build static library since it would be rare for OSX user to have gmp installed.
-mkdir -p bin/none
-cd bin/none
-../../gmp-${GMP_VERSION}/configure --with-pic
-$MAKE
-sh ../../build_jbigi.sh static
-cp libjbigi.jnilib ../../lib/net/i2p/util/libjbigi-osx-$(uname -m).jnilib
-cd ../..
 fi
 
 
