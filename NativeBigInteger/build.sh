@@ -41,9 +41,13 @@ then
 fi
 
 
-# Don't extract gmp if it's already been done
-$WGET ftp://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.gz
+# Don't download gmp if it's already been done
+if [ ! -f gmp-${GMP_VERSION}.tar.gz ]
+then
+	$WGET ftp://ftp.gnu.org/gnu/gmp/gmp-${GMP_VERSION}.tar.gz
+fi
 
+# Don't extract gmp if it's already been done
 if [ ! -d gmp-${GMP_VERSION} ]
 then
 	echo "Extracting sources for GNU MP library version ${GMP_VERSION}..."
